@@ -7,8 +7,6 @@ class RabiExperiment(Experiment):
     #com amplitude variável, seguido por uma medição.
     
     def __init__(self):
-        # Esta parte permanece a mesma. O construtor do nosso mock
-        # foi projetado para aceitar este caminho.
         super().__init__('config/quantum_config.yaml')
 
     def make_sequence(
@@ -19,9 +17,8 @@ class RabiExperiment(Experiment):
         
         #Gera a sequência de pulsos para um único ponto de um sweep de Rabi.
         
-        qubit = self.system.get_instances(TunableQubit)[0] # [cite: 4680]
+        qubit = self.system.get_instances(TunableQubit)[0] 
 
-        # Nenhuma alteração necessária aqui. A lógica está perfeita.
         # Adiciona o pulso de controle (Rabi) à sequência.
         the_sequencer.append(qubit.xy.play_pulse(amplitude=amplitude)) # [cite: 4681]
 
