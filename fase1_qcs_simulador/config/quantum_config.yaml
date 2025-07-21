@@ -1,0 +1,81 @@
+# =================================================================
+# Arquivo de Configuração do Sistema Quântico (Quantum System Configuration)
+#
+# Este arquivo define os "instrumentos" de controle clássico e os 
+# "dispositivos quânticos" que eles controlam. É a ponte entre a 
+# API QCS e o hardware (real ou emulado). [cite: 263]
+# =================================================================
+
+# -----------------------------------------------------------------
+# Seção de Instrumentos: Define os controladores clássicos.
+# Drivers que a API QCS irá usar
+# No seu caso, são nomes lógicos que sua FPGA irá representar.
+# Em um sistema real, aqui estariam os módulos PXIe da Keysight. [cite: 264]
+# -----------------------------------------------------------------
+instruments:
+  control_awg: #Representa o Gerador de Forma de Onda Arbitrária (AWG) responsável pelos pulsos de controle do qubit
+  #Em um sistema real seria um M5300A PXIe RF AWG ou um M3202A PXIe AWG
+    type: AWG
+    channels:
+      - ch0_I #Controle vetorial do pulso (x)
+      - ch0_Q #Controle vetorial do pulso (y)
+      - ch1_marker
+  
+  # Um AWG dedicado para gerar o pulso que excita o ressoador de leitura
+  readout_awg:
+    type: AWG
+    channels:
+      - ch_drive
+      - ch_marker
+
+  # Fonte de tensão/corrente DC para aplicar um bias estático no qubit e assim sintonizar sua frequência
+  #Em um sistema real seria um M9615A PXIe SMU
+  dc_source:
+    type: DCSource
+    channels:
+      - ch_z_bias
+
+  # Representa o hardware que adquire o sinal de resposta do ressoador
+  #Em um sistema real seria um M5200A PXIe Digitizer ou M3102A PXIe Digitizer.
+  digitizer:
+    type: Digitizer
+    channels:
+      - ch_acquisition
+
+# -----------------------------------------------------------------
+# Seção de Dispositivos Quânticos: Define os componentes quânticos.
+# Eles usam os canais dos instrumentos definidos acima para serem controlados.
+# -----------------------------------------------------------------
+quantum_devices:
+  # Define um ressoador de leitura
+  rr0: # Canal de excitação do ressoador. Quando enviar um pulso de leitura, deverá usar este canal.
+    [cite_start]type: ReadoutResonator [cite: 273]
+    channels:
+      drive: readout_awg.ch_drive
+      acquisition: digitizer.ch_acquisition # Canal de aquisição
+    parameters:
+      readout_frequency: 6.0E9 # Hz
+      readout_amplitude: 0.2   # V
+      integration_time: 2.0E-6 # s
+
+  # Define um qubit sintonizável (Tunable Qubit) [cite: 271]
+  q0:
+    type: TunableQubit
+    channels:
+      # Canal XY para rotações (pulsos de micro-ondas)
+      # Controle vetorial completo do estado do qubit no plano equatorial da esfera de Bloch
+      xy: 
+        I: control_awg.ch0_I
+        Q: control_awg.ch0_Q
+      # Canal Z para bias de fluxo (controle de frequência)
+      z: dc_source.ch_z_bias
+      # Associa este qubit ao seu ressoador de leitura
+      readout: rr0
+    
+    # Parâmetros de calibração podem ser armazenados aqui
+    parameters:
+      frequency: 4.505E9          # Frequência do qubit em Hz
+      pi_pulse_amplitude: 0.512   # Amplitude para um pulso Pi (180°)
+      pi_half_pulse_amplitude: 0.256 # Amplitude para um pulso Pi/2 (90°)
+      t1: 25.0E-6                 # Tempo T1 em segundos (valor de exemplo)
+      t2_ramsey: 18.0E-6          # Tempo T2 de Ramsey em segundos (valor de exemplo)
