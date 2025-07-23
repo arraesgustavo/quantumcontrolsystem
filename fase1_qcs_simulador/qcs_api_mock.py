@@ -24,7 +24,7 @@ from dataclasses import dataclass
 @dataclass
 class PulseOperation:
     channel_path: str
-    duration: float = 40e-9 # Duração padrão do pulso
+    duration: float = 250e-9 # Duração padrão do pulso
     amplitude: float = 0.0
     frequency: float = 0.0
     phase: float = 0.0
@@ -48,7 +48,7 @@ class BaseChannel:
         self.path = path
 
 class XYChannel(BaseChannel):
-    def play_pulse(self, amplitude=0.5, duration=40e-9):
+    def play_pulse(self, amplitude=0.5, duration=250e-9):
         print(f"DEBUG: Criando pulso no canal {self.path} com amplitude {amplitude}")
         return PulseOperation(channel_path=self.path, amplitude=amplitude, duration=duration)
 
